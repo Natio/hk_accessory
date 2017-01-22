@@ -1,6 +1,7 @@
 var Service, Characteristic;
-
+const SIMULATION_FREQUENCY = 60 * 1000;
 // https://github.com/KhaosT/HAP-NodeJS/blob/master/lib/gen/HomeKitTypes.js
+
 
 module.exports = function(homebridge) {
     Service = homebridge.hap.Service;
@@ -9,12 +10,13 @@ module.exports = function(homebridge) {
     homebridge.registerAccessory("homebridge-thermocork", "Thermocork", Thermocork);
 }
 
+
 function Thermocork(log, config) {
     this.log = log;
     this.config = config;
     this.name = config["name"];
-    this._heating_speed = config['heating_speed'] || 1;
-    this._cooling_speed = config['cooling_speed'] || 2;
+    this._heating_speed = (config['heating_speed'] || 1) / 3600;
+    this._cooling_speed = (config['cooling_speed'] || 2) / 3600;
     this.log('Heating speed: ' + this._heating_speed + ' Cooling speed: ' + this._cooling_speed);
 
     this.service = new Service.Thermostat(this.name);
@@ -40,6 +42,52 @@ function Thermocork(log, config) {
     this._currentTemperature = 17;
     this._targetHeatingCoolingState = Characteristic.TargetHeatingCoolingState.AUTO;
     this._currentHeatingCoolingState = Characteristic.CurrentHeatingCoolingState.AUTO;
+
+    this.log("Starting with currentTemperature: " + this._currentTemperature);
+    this.log("target temperature: " + this._targetTemperature);
+    this.log("heating speed:" + this._heating_speed);
+    this.log("Cooling speed:" + this._cooling_speed);
+
+    this._last_update = new Date();
+    // start the monitor loop
+    setInterval(this.timerTick.bind(this), SIMULATION_FREQUENCY);
+}
+
+Thermocork.prototype.simulateTemperatureChange = function(){
+    var delta_seconds = (Date.now() - this._last_update) / 1000;
+    this.log("delta_seconds " + delta_seconds);
+    var temperature_delta = 0.0;
+
+    if (this._currentHeatingCoolingState === Characteristic.CurrentHeatingCoolingState.OFF){
+        this.log("thermostat is OFF, decreasing temperature");
+        temperature_delta = -(this._cooling_speed * delta_seconds)
+    } else {
+        this.log("thermostat is ON, increasing temperature");
+        temperature_delta = (this._heating_speed * delta_seconds);
+    }
+
+    this.log("temperature delta: " + temperature_delta);
+    this._currentTemperature += temperature_delta;
+    // do not allow the temperature to go below 15 degrees
+    this._currentTemperature = Math.max(this._currentTemperature, 15);
+    this.log("Current temperature: " + this._currentTemperature);
+
+    this._last_update = Date.now();
+}
+
+Thermocork.prototype.timerTick = function(){
+    this.log('tic');
+
+    // update this._currentTemperature
+    this.simulateTemperatureChange();
+
+    // Check if we need to switch off
+    if (this._currentHeatingCoolingState !== Characteristic.CurrentHeatingCoolingState.OFF){
+        if(this._currentTemperature > this._targetTemperature){
+            this.log("Reached terget temperature, switching off");
+            this._currentHeatingCoolingState = Characteristic.CurrentHeatingCoolingState.OFF;
+        }
+    }
 }
 
 Thermocork.prototype.setCurrentHeatingCoolingState = function(value, callback){
@@ -89,10 +137,7 @@ Thermocork.prototype.getTargetTemperature = function(callback){
 Thermocork.prototype.setTemperatureDisplayUnits = function(value, callback){
     this._temperatureDisplayUnits = value;
     this.log("setting display unit " + value);
-    if(callback){
-        this.log(callback);
-        callback(null);
-    }
+    callback(null);
 }
 
 Thermocork.prototype.getTemperatureDisplayUnits = function(callback){

@@ -1,1 +1,2 @@
-DEBUG=* homebridge -D -U ./ -P thermocork/
+#DEBUG=* homebridge -D -U ./ -P thermocork/
+homebridge -D -U ./ -P thermocork/

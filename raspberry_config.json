@@ -1,0 +1,26 @@
+{
+    "bridge": {
+        "name": "HomebridgePi",
+        "username": "CD:22:3D:E3:CE:30",
+        "port": 51826,
+        "pin": "031-45-156"
+    },
+
+    "description": "Sample Description",
+
+    "platforms": [],
+
+    "accessories": [
+        {
+            "accessory": "TemperatureCMD",
+            "name": "Living Room Temperature",
+            "command": "/usr/bin/python /home/pi/serial_manager.py"
+        },
+        {
+            "accessory": "Thermocork",
+            "name": "Led",
+            "heating_speed": 1,
+            "cooling_speed": 2
+        }
+    ]
+}
