@@ -1,0 +1,21 @@
+{
+    "bridge": {
+        "name": "HomebridgeMac",
+        "username": "CD:22:3D:E3:CE:33",
+        "port": 51826,
+        "pin": "031-45-156"
+    },
+
+    "description": "Sample Description",
+
+    "platforms": [],
+
+    "accessories": [
+        {
+            "accessory": "Thermocork",
+            "name": "Led",
+            "heating_speed": 1,
+            "cooling_speed": 2
+        }
+    ]
+}
