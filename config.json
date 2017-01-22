@@ -1,7 +1,7 @@
 {
     "bridge": {
-        "name": "HomebridgeMac",
-        "username": "CD:22:3D:E3:CE:33",
+        "name": "HomebridgeMac2",
+        "username": "CD:22:3D:E3:CE:34",
         "port": 51826,
         "pin": "031-45-156"
     },

@@ -20,22 +20,22 @@ function Thermocork(log, config) {
     this.log('Heating speed: ' + this._heating_speed + ' Cooling speed: ' + this._cooling_speed);
 
     this.service = new Service.Thermostat(this.name);
-    var targetTemperature = this.service.getCharacteristic(Characteristic.TargetTemperature);
-    var temperatureDisplayUnits = this.service.getCharacteristic(Characteristic.TemperatureDisplayUnits);
-    var currentTemperature = this.service.getCharacteristic(Characteristic.CurrentTemperature);
-    var targetHeatingCoolingState = this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState);
-    var currentHeatingCoolingState = this.service.getCharacteristic(Characteristic.CurrentHeatingCoolingState);
+    this.targetTemperatureCharacteristic = this.service.getCharacteristic(Characteristic.TargetTemperature);
+    this.temperatureDisplayUnitsCharacteristic = this.service.getCharacteristic(Characteristic.TemperatureDisplayUnits);
+    this.currentTemperatureCharacteristic = this.service.getCharacteristic(Characteristic.CurrentTemperature);
+    this.targetHeatingCoolingStateCharacteristic = this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState);
+    this.currentHeatingCoolingStateCharacteristic = this.service.getCharacteristic(Characteristic.CurrentHeatingCoolingState);
 
-    targetTemperature.on('get', this.getTargetTemperature.bind(this));
-    targetTemperature.on('set', this.setTargetTemperature.bind(this));
-    temperatureDisplayUnits.on('get', this.getTemperatureDisplayUnits.bind(this));
-    temperatureDisplayUnits.on('set', this.setTemperatureDisplayUnits.bind(this));
-    currentTemperature.on('get', this.getCurrentTemperature.bind(this));
-    currentTemperature.on('set', this.setCurrentTemperature.bind(this));
-    targetHeatingCoolingState.on('get', this.getTargetHeatingCoolingState.bind(this));
-    targetHeatingCoolingState.on('set', this.setCurrentHeatingCoolingState.bind(this));
-    currentHeatingCoolingState.on('get', this.getCurrentHeatingCoolingState.bind(this));
-    currentHeatingCoolingState.on('set', this.setCurrentHeatingCoolingState.bind(this));
+    this.targetTemperatureCharacteristic.on('get', this.getTargetTemperature.bind(this));
+    this.targetTemperatureCharacteristic.on('set', this.setTargetTemperature.bind(this));
+    this.temperatureDisplayUnitsCharacteristic.on('get', this.getTemperatureDisplayUnits.bind(this));
+    this.temperatureDisplayUnitsCharacteristic.on('set', this.setTemperatureDisplayUnits.bind(this));
+    this.currentTemperatureCharacteristic.on('get', this.getCurrentTemperature.bind(this));
+    this.currentTemperatureCharacteristic.on('set', this.setCurrentTemperature.bind(this));
+    this.targetHeatingCoolingStateCharacteristic.on('get', this.getTargetHeatingCoolingState.bind(this));
+    this.targetHeatingCoolingStateCharacteristic.on('set', this.setCurrentHeatingCoolingState.bind(this));
+    this.currentHeatingCoolingStateCharacteristic.on('get', this.getCurrentHeatingCoolingState.bind(this));
+    this.currentHeatingCoolingStateCharacteristic.on('set', this.setCurrentHeatingCoolingState.bind(this));
 
     this._targetTemperature = 20;
     this._temperatureDisplayUnits = Characteristic.TemperatureDisplayUnits.CELSIUS;
@@ -72,6 +72,8 @@ Thermocork.prototype.simulateTemperatureChange = function(){
     this._currentTemperature = Math.max(this._currentTemperature, 15);
     this.log("Current temperature: " + this._currentTemperature);
 
+    this.currentTemperatureCharacteristic.setValue(this._currentTemperature, null, 'simulateTemperatureChange');
+
     this._last_update = Date.now();
 }
 
@@ -86,6 +88,7 @@ Thermocork.prototype.timerTick = function(){
         if(this._currentTemperature > this._targetTemperature){
             this.log("Reached terget temperature, switching off");
             this._currentHeatingCoolingState = Characteristic.CurrentHeatingCoolingState.OFF;
+            this.currentTemperatureCharacteristic.setValue(Characteristic.CurrentHeatingCoolingState.OFF, null, 'timerTick');
         }
     }
 }
